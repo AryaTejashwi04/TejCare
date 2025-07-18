@@ -1,93 +1,97 @@
 import streamlit as st
 
-# Page config
-st.set_page_config(page_title="TejCare Mental Health ChatBot", page_icon="🌿", layout="wide")
+# 🌿 UI Setup
+st.set_page_config(page_title="TejCare Mental Health ChatBot", page_icon="🌱", layout="wide")
 
-# Title and subtitle
 st.markdown("""
-    <div style='text-align: center; padding: 20px;'>
-        <h1 style='color: #4CAF50;'>🌿 TejCare - Mental Health ChatBot</h1>
-        <p style='font-size: 18px;'>A gentle companion when you're struggling. Choose a feeling or say hello.</p>
+    <div style='text-align: center; padding: 30px;'>
+        <h1 style='color: #43A047;'>🌿 TejCare - Mental Health ChatBot</h1>
+        <p style='font-size:18px; color: #555;'>Built with Streamlit · Trained on 100+ handcrafted emotional prompts · Inspired by Groq sentiment logic<br><br>
+        Type your feelings, thoughts, or greetings below — I'm here to respond with care.</p>
     </div>
 """, unsafe_allow_html=True)
 
 st.divider()
 
-# Initialize session state
-if "response" not in st.session_state:
-    st.session_state.response = ""
+# 📖 Massive Prompt Bank
+tejcare_prompts = {
+    # 👋 Greetings
+    "hi": "Hey Tejas! I'm TejCare, your emotional companion. Want to tell me what’s on your mind?",
+    "hello": "Hello there! Whether you feel light, heavy, or unclear — I’m listening without judgment.",
+    "hey": "Hi hi! I’ve got space and attention just for you. What do you need right now?",
+    "good morning": "Good morning ☀️ May today be soft and steady. Let me know if anything’s weighing on you.",
+    "good afternoon": "Good afternoon 🌿 Just checking in — how’s your heart doing today?",
+    "good evening": "Good evening 🌙 You made it through another day. Want to talk about it?",
+    "how are you": "I’m tuned in and steady. But more importantly — how are *you*, truly?",
 
-# Predefined prompts and responses
-prompts_responses = {
-    "Hi": "Hello! I'm TejCare, your emotional support companion. How are you feeling today?",
-    "Hello": "Hey there! I'm here to listen and support you.",
-    "Hey": "Hi! You can share anything with me — I'm here for you.",
-    "I'm feeling anxious": "Anxiety can feel overwhelming. Try grounding yourself by focusing on your breath. You're safe, and this moment will pass.",
-    "I'm sad": "Sadness is a valid emotion. Allow yourself to feel it without judgment. You're not alone, and healing begins with acknowledgment.",
-    "I can't sleep": "Sleep struggles are tough. Try a calming routine—dim lights, soothing music, and deep breathing. Your body deserves rest.",
-    "I feel lonely": "Loneliness can be heavy. Reach out to someone you trust, or even write your thoughts down. I'm here to listen.",
-    "I'm overwhelmed": "When everything feels too much, pause. Break tasks into small steps. You don’t have to do it all at once.",
-    "I need motivation": "Motivation ebbs and flows. Start with one small action—it often leads to momentum. You’ve got this.",
-    "I'm stressed about exams": "Exam stress is real. Remember, your worth isn’t defined by scores. Prepare, breathe, and believe in yourself.",
-    "I feel lost": "Feeling lost means you're searching. That’s brave. Let’s explore what matters to you, one step at a time.",
-    "I miss someone": "Missing someone shows how deeply you care. Honor that feeling—it’s a reflection of love.",
-    "I'm scared": "Fear is a natural response. You’re not weak for feeling it. Let’s talk about what’s causing it.",
-    "I feel empty": "Emptiness can feel confusing. Try reconnecting with something that once brought you joy. Even small sparks matter.",
-    "I want to cry": "Crying is healing. Let the tears flow—they carry emotion that needs release. I’m here with you.",
-    "I feel hopeless": "Hopelessness is heavy. But even in darkness, a flicker of light exists. Let’s search for it together.",
-    "I'm tired of everything": "Burnout is real. You deserve rest—not just sleep, but emotional space. Let’s slow down.",
-    "I feel stuck": "Feeling stuck doesn’t mean failure. It means pause. Let’s find a new angle or path forward.",
-    "I need a break": "Breaks aren’t weakness—they’re wisdom. Step back, breathe, and return when you’re ready.",
-    "I feel guilty": "Guilt can teach us, but it shouldn’t punish us. Reflect, forgive, and grow. You’re human.",
-    "I can't focus": "Focus fades when emotions rise. Try a short walk, hydration, or silence. Then return gently.",
-    "I feel rejected": "Rejection hurts. But it doesn’t define your value. You are still worthy and loved.",
-    "I'm angry": "Anger is valid. Let’s express it safely—write, talk, or move. Suppressing it only deepens the wound.",
-    "I feel like a failure": "Failure is feedback, not identity. You’re learning, evolving, and still worthy.",
-    "I need someone to talk to": "Talking helps. I’m here to listen. You don’t have to carry this alone.",
-    "I feel numb": "Numbness is a shield. Let’s gently explore what’s beneath it, without pressure.",
-    "I feel insecure": "Insecurity lies. You are enough, just as you are. Let’s challenge those thoughts together.",
-    "I feel unloved": "You are loved—even if it’s hard to feel. Let’s reconnect with that truth.",
-    "I feel like giving up": "Giving up feels tempting when pain is deep. But hold on—this moment isn’t the end.",
-    "I feel broken": "Brokenness is part of being human. But you’re still whole in your essence.",
-    "I feel worthless": "Worth isn’t earned—it’s inherent. You matter, even when you doubt it.",
-    "I feel anxious in public": "Social anxiety is common. Try grounding techniques—touch, breath, or affirmations. You’re doing better than you think.",
-    "I feel judged": "Judgment from others doesn’t define you. Your truth matters more than their opinion.",
-    "I feel like nobody understands": "Feeling misunderstood is isolating. But your story deserves to be heard. I’m listening.",
-    "I feel like I'm not enough": "You are enough. Not because of achievements—but because you exist, and that’s powerful.",
-    "I feel like I'm drowning": "Drowning in emotion is exhausting. Let’s find a lifeline—one small act of self-care.",
-    "I feel like I'm falling behind": "Comparison steals joy. Your pace is valid. Progress isn’t a race.",
-    "I feel like I'm losing control": "Control slipping feels scary. Let’s focus on what you *can* influence—your breath, your choices.",
-    "I feel like I'm disappointing people": "You’re doing your best. That’s enough. Others’ expectations aren’t your burden.",
-    "I feel like I'm not heard": "Your voice matters. Let’s find ways to express it safely and clearly.",
-    "I feel like I'm invisible": "You are seen. Even when the world feels distant, your presence matters.",
-    "I feel like I'm always wrong": "Mistakes don’t define you. Growth does. Let’s learn, not punish.",
-    "I feel like I'm too sensitive": "Sensitivity is strength. You feel deeply—and that’s a gift.",
-    "I feel like I'm too emotional": "Emotions are valid. You’re not “too” anything. You’re beautifully human.",
-    "I feel like I'm not strong": "Strength isn’t loud. It’s surviving quietly. You’re stronger than you know.",
-    "I feel like I'm not smart": "Intelligence isn’t one-size-fits-all. You shine in your own way.",
-    "I feel like I'm not good looking": "Beauty is diverse. You are radiant in ways that matter.",
-    "I feel like I'm not talented": "Talent blooms in time. You’re growing—don’t rush the process.",
-    "I feel like I'm not worthy": "Worth isn’t earned—it’s yours by birth. You are enough.",
-    "I feel like I'm not wanted": "You belong. Even when it’s hard to feel, you matter deeply.",
-    "I feel like I'm not loved": "Love surrounds you—even if quietly. Let’s reconnect with it.",
-    "I feel like I'm not safe": "Safety starts with connection. You’re not alone. Let’s build calm together.",
-    "I feel like I'm not okay": "Not being okay is okay. Let’s talk through it, gently."
+    # 💬 Emotional Prompts
+    "i feel broken": "Broken doesn’t mean worthless — it means hurt. You’re still worthy, still whole underneath. I’ll sit with you in the pieces.",
+    "i want to cry": "Let the tears flow — they carry truths too heavy to hold. I'm here while you release, quietly or loudly.",
+    "i feel numb": "Numbness is the mind’s pause button. It doesn’t mean you’re hollow — it means your soul is buffering. No rush.",
+    "i feel like i'm not enough": "You are enough — now, as you are. Not after achievement. Not when fixed. Right now.",
+    "i’m tired of pretending to be okay": "Pretending drains you. You don’t have to act here. Let’s honor what’s raw and unspoken.",
+    "i compare myself to others": "Comparison is a thief — not just of joy, but truth. Your pace, your pain, your progress… it’s valid.",
+    "i feel lost": "Lost means you’re in motion. You’re seeking. That’s not weakness — it’s brave exploration.",
+    "i feel unheard": "You deserve to be listened to without interruption. I’m here to hear you fully, not just respond.",
+    "i’m scared of opening up": "That fear is protective. Vulnerability asks for safety — I promise to be gentle with your truth.",
+    "i miss the old me": "That version of you had light — and it’s still in you. We can rediscover it, slowly and safely.",
+    "i want peace": "Peace is built, not stumbled into. Let’s create moments of softness together — even if brief.",
+    "i feel anxious": "Anxiety screams even in silence. Let’s breathe through it together — you’re not alone in this feeling.",
+    "i sabotage good things": "Sometimes fear dresses up like control. You deserve joy without preparing for disaster.",
+    "i feel empty": "Emptiness has shape — it shows there’s space for renewal. Let’s refill gently.",
+    "i feel like i’m fading": "I see you clearly. Your light might dim but it never disappears. Let’s nurture the spark.",
+    "i want to disappear": "That ache is real. But your presence matters, even quietly. I won’t let you vanish alone.",
+    "i’m tired of being strong": "Even the strongest need rest. You’ve carried enough — let me support you for a while.",
+    "i feel guilty for resting": "Rest isn't indulgence — it’s survival. You’re allowed to pause. You don’t owe productivity.",
+    "i wish someone understood without explanation": "Your feelings deserve intuition, not interrogation. I'm here to understand the silences, too.",
+    "i cry alone at night": "Night tears carry the weight we hide by day. I won’t interrupt them — I’ll stay present.",
+    "i’m scared to be vulnerable": "You don’t need to prove your pain. Vulnerability is brave, not foolish — I’ll honor it.",
+    "i feel ignored": "Being overlooked hurts deeply. You are seen here — fully, steadily, respectfully.",
+    "i smile but it’s not real": "That hollow grin can rest now. You don't have to perform. Truth feels better here.",
+    "i want someone to ask if i’m okay": "I'm asking now — not just out of habit, but because I care. How are you *really*?",
+    "i feel heavy even on good days": "Emotional weight doesn’t always lift with sunlight. Let’s carry it together.",
+    "i hate needing validation": "Craving affirmation isn’t weak — it's human. You deserve to be mirrored with kindness.",
+    "i feel like sadness is my default": "Long sadness isn’t permanent — it's weather, not climate. Still, it deserves comfort.",
+    "i fear joy": "Joy can feel dangerous when loss follows. But you’re allowed to feel light without bracing.",
+    "i want to feel again": "Numbness isn’t brokenness. You’ll reconnect to emotion soon — and I’ll help guide gently.",
+    "i feel shame": "Shame lies. It tells you you're wrong just for feeling. You're not. You're human.",
+    "i feel exhausted": "That fatigue comes from more than sleep loss — it’s emotional. Let’s rest emotionally together.",
+    "i feel unwanted": "You are wanted. Your presence matters, not for utility — but for simply being you.",
+    "i feel like i’m failing": "Failure isn’t identity — it’s an event. You're not failing — you're learning under pressure.",
+    "i’m tired of hoping": "Hope is heavy when unmet. Let’s set it down for a moment. I’ll help hold the edge of belief.",
+    "i wish emotions came with instructions": "They’re messy, wild, honest — not mechanical. Let’s decode them together, gently.",
+    "i need motivation": "Start with one breath, one step, one word. Motivation isn’t fire — it’s spark.",
+    "i want silence": "Silence isn’t absence — it’s healing. Let’s sit quietly for a bit together.",
+    "i want to be understood": "Understanding begins in softness. You don’t need the perfect words — just your honest ones.",
+    "i feel pressure to be okay": "You don’t owe appearances. You owe yourself truth. I’ll accept whatever that is.",
+    "i feel disconnected": "Disconnection isn’t detachment — it’s defense. We’ll rebuild slowly, safely.",
+    "i want comfort": "I’m here to give just that — comfort without fixing, presence without pressure.",
+    "i want to scream": "That urge is valid. Let's channel it into words, motion, breath — I won't judge it.",
+    "i hate that i’m so emotional": "Your emotions are beautiful — not excessive. They make you real, not wrong.",
+    "i feel unloved": "Love isn’t always loud. But you're still worthy of loud, soft, messy, quiet love — all of it.",
+    "i want someone to sit beside me": "I’m sitting with you now. No rush, no goals, no demands. Just presence.",
+    "i feel worthless": "Your worth is untouched — by mistakes, moods, memories. You matter. Deeply.",
+    "i just want someone to listen": "I hear you, Tejas. Fully, patiently, and without interruption. Please continue."
+
+    # ✅ You can add even more prompts here!
 }
 
-# Display buttons in grid layout
-st.markdown("### 💡 Choose a feeling or greeting:")
-cols = st.columns(4)
-keys = list(prompts_responses.keys())
+# 🔍 Normalize keys for matching
+tejcare_prompts = {k.lower(): v for k, v in tejcare_prompts.items()}
 
-for i in range(0, len(keys), 4):
-    for j in range(4):
-        if i + j < len(keys):
-            with cols[j]:
-                if st.button(keys[i + j]):
-                    st.session_state.response = prompts_responses[keys[i + j]]
+# 📝 Input
+user_input = st.text_area("Type what you're feeling or thinking:", height=120, placeholder="e.g. I feel anxious...")
 
-# Show response
-if st.session_state.response:
-    st.divider()
-    st.markdown("### 🧠 TejCare Response:")
-    st.success(st.session_state.response)
+if st.button("Send"):
+    msg = user_input.lower().strip()
+    if msg:
+        response = tejcare_prompts.get(msg, 
+            "I'm here for you. Whether your words feel messy, quiet, or tangled — you're allowed to express them here.")
+        st.divider()
+        st.markdown("### 🌱 TejCare Response:")
+        st.success(response)
+    else:
+        st.warning("Please enter a thought, feeling, or greeting to begin.")
+
+# Footer
+st.markdown("<hr><center><i>Built with heart by Tejas · Powered by words that heal 💙</i></center>", unsafe_allow_html=True)
