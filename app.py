@@ -1,12 +1,11 @@
-
 import streamlit as st
 from sentence_transformers import SentenceTransformer, util
+import torch
 import random
 
 # 🌿 UI Setup
 st.set_page_config(page_title="TejCare Mental Health ChatBot", page_icon="🌱", layout="wide")
 
-# 🌿 Header Section
 st.markdown("""
     <div style='text-align: center; padding: 30px;'>
         <h1 style='color: #43A047;'>🌿 TejCare - Mental Health ChatBot</h1>
@@ -41,9 +40,25 @@ tejcare_prompts = {
     "i feel like i’m failing": "Failure isn’t final — it’s feedback. You’re learning, not losing."
 }
 
-# 🔍 Normalize dictionary keys
 tejcare_prompts = {k.lower(): v for k, v in tejcare_prompts.items()}
-keys = list(tejcare_prompts.keys())
+prompt_keys = list(tejcare_prompts.keys())
+
+# 🔒 Banned Words
+banned_words = {
+    "kill", "suicide", "murder", "hate", "bomb", "terrorist", "abuse", "rape", "violence", "self-harm",
+    "drugs", "overdose", "weapon", "gun", "knife", "blood", "die", "dying", "dead", "death",
+    "sex", "porn", "nude", "nsfw", "molest", "assault", "racist", "slur", "bully", "harass",
+    "cutting", "hanging", "jumping", "shooting", "stab", "explode", "torture", "genocide", "war", "execution",
+    "meth", "cocaine", "heroin", "weed", "alcoholic", "drunk", "addict", "dealer", "gang", "cartel",
+    "incest", "pedophile", "child abuse", "gore", "graphic", "explicit", "fetish", "kinky", "orgy", "masturbate",
+    "vomit", "feces", "urine", "pee", "poop", "nazi", "hitler", "satan", "cult", "ritual",
+    "curse", "damn", "hell", "bitch", "bastard", "slut", "whore", "dumb", "idiot", "moron",
+    "ugly", "fat", "worthless", "retard", "cripple", "psycho", "crazy", "lunatic", "insane", "schizo"
+}
+
+def contains_banned_word(text):
+    text_lower = text.lower()
+    return any(bad_word in text_lower for bad_word in banned_words)
 
 # 🌱 Fallback Responses
 fallback_lines = [
@@ -69,9 +84,13 @@ fallback_lines = [
     "Let’s sit in this moment — no rush, no pressure."
 ]
 
-# 🧠 Semantic Matching Setup
-model = SentenceTransformer('all-MiniLM-L6-v2')
-key_embeddings = model.encode(keys, convert_to_tensor=True)
+# 🧠 Semantic Search Setup
+@st.cache_resource(show_spinner=False)
+def load_model():
+    return SentenceTransformer('all-MiniLM-L6-v2')
+
+model = load_model()
+key_embeddings = model.encode(prompt_keys, convert_to_tensor=True)
 
 def get_semantic_reply(user_input):
     input_embedding = model.encode(user_input, convert_to_tensor=True)
@@ -79,7 +98,7 @@ def get_semantic_reply(user_input):
     best_score = scores.max().item()
     best_match_idx = scores.argmax().item()
     if best_score > 0.6:
-        return tejcare_prompts[keys[best_match_idx]]
+        return tejcare_prompts[prompt_keys[best_match_idx]]
     else:
         return random.choice(fallback_lines)
 
@@ -90,9 +109,12 @@ if st.button("Send"):
     msg = user_input.lower().strip()
     if msg:
         reply = get_semantic_reply(msg)
-        st.divider()
-        st.markdown("### 🌱 TejCare Response:")
-        st.success(reply)
+        if contains_banned_word(reply):
+            st.error("⚠️ Sorry, I can't respond to that message. Let's keep this space safe and supportive.")
+        else:
+            st.divider()
+            st.markdown("### 🌱 TejCare Response:")
+            st.success(reply)
     else:
         st.warning("Please type something you're feeling — even a single word.")
 
