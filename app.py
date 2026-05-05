@@ -80,11 +80,13 @@ class TejCareUltraPipeline:
         ]
 
     def _hybrid_sentiment(self, text):
+        """VADER + TextBlob Hybrid Sentiment Analysis"""
         v_score = vader_analyzer.polarity_scores(text)['compound']
         t_score = TextBlob(text).sentiment.polarity
         return (v_score + t_score) / 2
 
     def _safety_audit(self, text):
+        """Recursive safety audit via match density"""
         tokens = text.lower().replace('.', '').replace(',', '').split()
         match_count = sum(1 for word in tokens if word in self.safety_lexicon)
         return (match_count / len(tokens)) * 100 if tokens else 0
@@ -117,7 +119,6 @@ class TejCareUltraPipeline:
             "Response (Be empathetic and concise):"
         )
         
-        # Fixing the 'hello' bug - direct generation
         raw_response = llm.generate_content(prompt).text
 
         # 5. RECURSIVE SAFETY AUDIT (>50% Density Check)
@@ -125,7 +126,7 @@ class TejCareUltraPipeline:
             return self.run(f"System: Safe Tone Request for: {query}")
 
         # 6. READ-THROUGH CACHE PERSISTENCE
-        # CRITICAL: Saving current (Q, A) pair into Index1 for future sub-ms retrieval
+        # CRITICAL: Saving current (Q, A) pair into Index1 for future retrieval
         self.index1_vectors = np.vstack([self.index1_vectors, query_vec.cpu().numpy()])
         self.index1_pairs.append({"q": query, "a": raw_response})
         
@@ -139,7 +140,6 @@ def main():
     apply_custom_ui()
     
     st.title("🌿 TejCare: Your Mental Health Friend")
-    st.caption("Advanced Retrieval-Augmented Generation for Emotional Support")
     st.divider()
 
     engine = TejCareUltraPipeline()
@@ -173,7 +173,8 @@ def main():
                 st.write(final_out)
                 st.markdown(f'<span class="status-pill">{trajectory}</span>', unsafe_allow_html=True)
 
-    st.markdown("<div style='text-align: right; color: #555; font-size: 10px; margin-top: 50px;'>Tejashwi Arya | NITK EEE | 221EE257</div>", unsafe_allow_html=True)
+    # Simplified Signature
+    st.markdown("<div style='text-align: right; color: #555; font-size: 11px; margin-top: 50px;'>Tejashwi Arya</div>", unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
